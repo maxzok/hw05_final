@@ -312,7 +312,9 @@ class FollowViewsTest(TestCase):
 
     def test_unfollow_author(self):
         follow_count = Follow.objects.count()
-        Follow.objects.create(user = self.follower, author = self.post_author.author)
+        Follow.objects.create(
+            user=self.follower, author=self.post_author.author
+        )
         response = self.authorized_client.get(
             reverse('posts:profile_unfollow', args={self.author}))
         self.assertRedirects(response, reverse(

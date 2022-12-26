@@ -126,7 +126,9 @@ class TaskCreateFormTests(TestCase):
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertTrue(
-            Comment.objects.filter(text=form_data['text'], post=self.post).exists()
+            Comment.objects.filter(
+                text=form_data['text'], post=self.post
+            ).exists()
         )
 
     def test_comment_show_up(self):
@@ -142,8 +144,8 @@ class TaskCreateFormTests(TestCase):
             follow=True
         )
         response2 = self.authorized_client.get(
-                    reverse('posts:post_detail', kwargs={'post_id': self.post.id})
-                ).context['comments']
+            reverse('posts:post_detail', kwargs={'post_id': self.post.id})
+        ).context['comments']
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertEqual(Comment.objects.count(), comments_count + 1)
