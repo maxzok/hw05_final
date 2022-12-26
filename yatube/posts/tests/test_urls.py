@@ -3,6 +3,7 @@ from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.core.cache import cache
 
 from posts.models import Post, Group
 
@@ -23,7 +24,7 @@ class StaticURLTests(TestCase):
             author=cls.user,
             text='Тестовый пост',
         )
-        cls.HOME_PG = '/'
+        cls.HOME_PG = ''
         cls.GROUP_PG = f'/group/{StaticURLTests.group.slug}/'
         cls.PROFILE_PG = f'/profile/{StaticURLTests.user.username}/'
         cls.DETAIL_PG = f'/posts/{StaticURLTests.post.id}/'
@@ -34,6 +35,7 @@ class StaticURLTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_urls_uses_correct_template_not_a_url(self):
         """Несуществующий адрес отвечает 404"""
