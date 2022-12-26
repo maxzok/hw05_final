@@ -64,14 +64,17 @@ class ViewsTests(TestCase):
         self.assertEqual(first_object.id, self.post.id)
         self.assertEqual(first_object.image, self.post.image)
 
-    def test_pages_uses_correct_template(self):
-        """Проверяем работу кэша главной страницы"""
+    def test_cache_index(self):
+        """Тест кэша главной страницы"""
         response = self.client.get(reverse(self.index))
         cached_response_content = response.content
-        Post.objects.create(text='Второй пост', author=self.user)
+        post1 = Post.objects.create(text='Второй пост', author=self.user)
         response = self.client.get(reverse(self.index))
         self.assertEqual(cached_response_content, response.content)
         cache.clear()
+        response = self.client.get(reverse(self.index))
+        self.assertNotEqual(cached_response_content, response.content)
+        Post.objects.filter(id=post1.id).delete()
         response = self.client.get(reverse(self.index))
         self.assertNotEqual(cached_response_content, response.content)
 
@@ -309,8 +312,7 @@ class FollowViewsTest(TestCase):
 
     def test_unfollow_author(self):
         follow_count = Follow.objects.count()
-        self.authorized_client.get(
-            reverse('posts:profile_follow', args={self.author}))
+        Follow.objects.create(user = self.follower, author = self.post_author.author)
         response = self.authorized_client.get(
             reverse('posts:profile_unfollow', args={self.author}))
         self.assertRedirects(response, reverse(

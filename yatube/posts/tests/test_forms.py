@@ -71,15 +71,15 @@ class TaskCreateFormTests(TestCase):
                               kwargs={'username': self.user.username})
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
+        post_id = response.context['page_obj'][0].id
         self.assertTrue(
             Post.objects.filter(
                 author=self.user,
                 text=form_data['text'],
                 group=self.group,
+                image=Post(id=post_id).image
             ).exists()
         )
-        self.assertEqual(response.context['page_obj'][0].image,
-                         'posts/small.gif')
 
     def test_edit_post(self):
         """После редактирования поста автором он изменяется"""
@@ -126,7 +126,7 @@ class TaskCreateFormTests(TestCase):
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertTrue(
-            Comment.objects.filter(text='Новый комментарий').exists()
+            Comment.objects.filter(text=form_data['text'], post=self.post).exists()
         )
 
     def test_comment_show_up(self):
@@ -141,6 +141,12 @@ class TaskCreateFormTests(TestCase):
             data=form_data,
             follow=True
         )
+        response2 = self.authorized_client.get(
+                    reverse('posts:post_detail', kwargs={'post_id': self.post.id})
+                ).context['comments']
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertEqual(Comment.objects.count(), comments_count + 1)
+        self.assertIn(
+            Comment.objects.filter(text=form_data['text']).first(), response2
+        )
