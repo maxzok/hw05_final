@@ -71,13 +71,12 @@ class TaskCreateFormTests(TestCase):
                               kwargs={'username': self.user.username})
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        post_id = response.context['page_obj'][0].id
         self.assertTrue(
             Post.objects.filter(
                 author=self.user,
                 text=form_data['text'],
                 group=self.group,
-                image=Post(id=post_id).image
+                image='posts/' + uploaded.name
             ).exists()
         )
 
@@ -143,12 +142,10 @@ class TaskCreateFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        response2 = self.authorized_client.get(
+        comments_response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id})
-        ).context['comments']
+        ).context['comments'].values_list("text", flat=True)
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertEqual(Comment.objects.count(), comments_count + 1)
-        self.assertIn(
-            Comment.objects.filter(text=form_data['text']).first(), response2
-        )
+        self.assertIn(form_data['text'], comments_response)
